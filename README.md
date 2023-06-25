@@ -1,2 +1,2 @@
-# arweave-whale-alert
+# 🐋 Arweave Whale Alert 🐋
 The Arweave Whale Alert Bot is an automated system designed to monitor and detect large transactions on the Arweave blockchain.
