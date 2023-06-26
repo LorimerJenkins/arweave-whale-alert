@@ -40,7 +40,9 @@ async function sendSlackMessage(message) {
 export default async function postToTwitter(whaleTransactions) {
 
     for (const transaction of whaleTransactions) {
-        const message = `🚨 ${winstonToArweave(transaction.quantity)} #AR (${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)}`
+        const message = `🚨 ${winstonToArweave(transaction.quantity)} #AR (${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)}. 
+        
+        Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`
         await sendSlackMessage(message);
         console.log(message)
     }
