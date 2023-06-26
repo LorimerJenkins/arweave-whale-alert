@@ -58,7 +58,7 @@ export default async function listenForTransactions() {
 
         const previousBlocksTxns = (await arweave.blocks.get(previous_block)).txs;
 
-        const largeArTransferDollars = 0.0001;
+        const largeArTransferDollars = 25000;
         const largeArTransfers = [];
 
         const txnPromises = previousBlocksTxns.map(async (txn) => {
@@ -66,7 +66,6 @@ export default async function listenForTransactions() {
                 const transaction = await arweave.transactions.get(txn);
                 if (transaction.quantity) {
                     const dollarWorth = winstonToDollars(transaction.quantity);
-                    console.log(dollarWorth)
                     if (dollarWorth >= largeArTransferDollars) {
                         largeArTransfers.push(transaction);
                     }
