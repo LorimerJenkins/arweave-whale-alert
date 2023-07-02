@@ -45,7 +45,8 @@ async function sendTweet(message) {
         accessToken: process.env.TWITTER_ACCESS_TOKEN,
         accessSecret: process.env.TWITTER_ACCESS_SECRET,      
     });
-    await twitterClient.v1.tweet(message);
+    let res = await twitterClient.v1.tweet(message);
+    console.log(res);
 }
 
 
@@ -55,8 +56,8 @@ export default async function postToTwitter(whaleTransactions) {
         const message = `🚨 ${winstonToArweave(transaction.quantity)} AR ($${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)} 
         
         Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`;
-        await sendTweet(message);
         await sendSlackMessage(message);
+        await sendTweet(message);
         console.log(message)
     }
 
