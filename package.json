@@ -4,7 +4,8 @@
     "axios": "^1.4.0",
     "dotenv": "^16.3.1",
     "heroku-client": "^3.1.0",
-    "redstone-api": "^0.4.11"
+    "redstone-api": "^0.4.11",
+    "twitter-api-v2": "^1.15.0"
   },
   "name": "arweave-whale-alert",
   "type": "module",
