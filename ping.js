@@ -3,14 +3,15 @@
 // dotenv.config();
 
 import redstone from "redstone-api";
+import { TwitterApi } from 'twitter-api-v2';
 import axios from 'axios';
 
 const currentArPrice = (await redstone.getPrice("AR")).value
 function winstonToDollars(winston) {
     const arweave = winston / 10 ** 12;
     const dollarWorth = currentArPrice * arweave;
-    const roundedValue = dollarWorth.toFixed(2);
-    return roundedValue;
+    const formattedValue = dollarWorth.toLocaleString("en-US", { minimumFractionDigits: 2 });
+    return formattedValue;
 }
 
 
@@ -34,15 +35,19 @@ async function sendSlackMessage(message) {
     }, { headers: { 'Authorization': `Bearer ${process.env.SLACK_TOKEN}`, 'Content-Type': 'application/json' } });
 }
 
-
+async function sendTweet(message) {
+    const twitterClient = new TwitterApi(process.env.TWITTER_TOKEN);
+    await twitterClient.v2.tweet(message);
+}
 
 
 export default async function postToTwitter(whaleTransactions) {
 
     for (const transaction of whaleTransactions) {
-        const message = `🚨 ${winstonToArweave(transaction.quantity)} #AR (${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)}. 
+        const message = `🚨 ${winstonToArweave(transaction.quantity)} AR ($${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)} 
         
-        Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`
+        Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`;
+        await sendTweet(message);
         await sendSlackMessage(message);
         console.log(message)
     }
