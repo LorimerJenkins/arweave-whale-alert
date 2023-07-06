@@ -64,9 +64,9 @@ async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
         if (saveLastFullBlock === false) {
             throw newError('Failed to update lastIndexedBlock!');
         }
-        const saveLastIndexedCurrentBlock = await updateHerokuFn('lastIndexedCurrentBlock', currentBlock);
-        if (saveLastIndexedCurrentBlock === false) {
-            throw newError('Failed to update lastIndexedCurrentBlock!');
+        const savelastCurrentBlock = await updateHerokuFn('lastCurrentBlock', currentBlock);
+        if (savelastCurrentBlock === false) {
+            throw newError('Failed to update lastCurrentBlock!');
         }
     }
 
@@ -82,7 +82,7 @@ export default async function listenForTransactions() {
     const queryBlocks = await arweave.blocks.getCurrent();
     const currentBlock = queryBlocks.indep_hash
     const currentFullBlock = queryBlocks.previous_block;
-    const lastIndexedCurrentBlock = process.env.lastIndexedCurrentBlock
+    const lastCurrentBlock = process.env.lastCurrentBlock
     const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
 
@@ -90,13 +90,13 @@ export default async function listenForTransactions() {
 
         console.log(`NO new block. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
     
-    } else if (currentFullBlock === lastIndexedCurrentBlock) {
+    } else if (currentFullBlock === lastCurrentBlock) {
 
         console.log(`NEW block. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
         let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
         return largeArTransfers;
 
-    } else if (currentFullBlock !== lastIndexedCurrentBlock) {
+    } else if (currentFullBlock !== lastCurrentBlock) {
 
         // const blocksMissed = currentFullBlock - lastIndexedBlock;
         console.log(`We have MISSED and not indexed ${'blocksMissed'} blocks. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
