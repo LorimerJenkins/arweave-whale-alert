@@ -38,7 +38,7 @@ function shortenAddress(address) {
 }
 
 
-async function queryBlock(lastFullBlock, saveBlockToHeroku) {
+async function queryBlock(lastFullBlock, updateHeroku) {
     const previousBlocksTxns = (await arweave.blocks.get(lastFullBlock)).txs;
     const largeArTransferDollars = parseInt(process.env.LARGE_AR_TRANSFERS_DOLLARS);
     let largeArTransfers = [];
@@ -59,10 +59,14 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 
     await Promise.all(txnPromises);
 
-    if (saveBlockToHeroku) {
-        const saveBlock = await updateHeroku('lastIndexedBlock', lastFullBlock);
-        if (saveBlock === false) {
-            throw newError('Failed to update previous block!');
+    if (updateHeroku) {
+        const saveLastFullBlock = await updateHeroku('lastIndexedBlock', lastFullBlock);
+        if (saveLastFullBlock === false) {
+            throw newError('Failed to update lastIndexedBlock!');
+        }
+        const saveLastIndexedCurrentBlock = await updateHeroku('lastIndexedCurrentBlock', currentBlock);
+        if (saveLastIndexedCurrentBlock === false) {
+            throw newError('Failed to update lastIndexedCurrentBlock!');
         }
     }
 
@@ -77,43 +81,41 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 export default async function listenForTransactions() {
     const queryBlocks = await arweave.blocks.getCurrent();
     const currentBlock = queryBlocks.indep_hash
-    const lastFullBlock = queryBlocks.previous_block;
-    const lastIndexedCurrentBlock = process.env.currentBlock
+    const currentFullBlock = queryBlocks.previous_block;
+    const lastIndexedCurrentBlock = process.env.lastIndexedCurrentBlock
     const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
 
-    if (lastFullBlock === lastIndexedBlock) {
+    if (currentFullBlock === lastIndexedBlock) {
 
-        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
     
-    } else if (lastFullBlock === lastIndexedCurrentBlock) {
+    } else if (currentFullBlock === lastIndexedCurrentBlock) {
 
-        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
-        let largeArTransfers = await queryBlock(lastFullBlock, true);
-        await updateHeroku('currentBlock', currentBlock);
+        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        let largeArTransfers = await queryBlock(currentFullBlock, true);
         return largeArTransfers;
 
-    } else if (lastFullBlock !== lastIndexedCurrentBlock) {
+    } else if (currentFullBlock !== lastIndexedCurrentBlock) {
 
-        const blocksMissed = lastFullBlock - lastIndexedBlock;
-        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        const blocksMissed = currentFullBlock - lastIndexedBlock;
+        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
 
         let largeArTransfers = [];
 
         for (let i = 0; i < blocksMissed; i++) {
             const index = i + 1;
-            const queryMissedBlocks = await queryBlock(lastFullBlock - index, false);
+            const queryMissedBlocks = await queryBlock(currentFullBlock - index, false);
             if (queryMissedBlocks.length !== 0) {
                 largeArTransfers = largeArTransfers.concat(queryMissedBlocks);
             }
         }
 
-        const queryCurrentFullBlock = await queryBlock(lastFullBlock, true);
+        const queryCurrentFullBlock = await queryBlock(currentFullBlock, true);
         if (queryCurrentFullBlock.length !== 0) {
             largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
         }
 
-        await updateHeroku('currentBlock', currentBlock);
         if (largeArTransfers.length === 0) {
             return false;
         } else {
