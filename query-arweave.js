@@ -1,7 +1,7 @@
 import Arweave from 'arweave';
 import redstone from 'redstone-api';
 import Heroku from 'heroku-client';
-import queryTransactionIDsBetweenBlocks from './arweaveGQL';
+import queryTransactionIDsBetweenBlocks from './arweaveGQL.js';
 
 
 const arweave = Arweave.init({
