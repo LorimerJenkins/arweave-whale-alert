@@ -76,7 +76,6 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 
 export default async function listenForTransactions() {
     const currentBlock = await arweave.blocks.getCurrent();
-    console.log(currentBlock)
     const lastFullBlock = currentBlock.previous_block;
     const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
@@ -88,7 +87,7 @@ export default async function listenForTransactions() {
         console.log('NEW block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
 
         let largeArTransfers = await queryBlock(lastFullBlock, true);
-        await updateHeroku('currentBlock', currentBlock.current);
+        await updateHeroku('currentBlock', currentBlock.indep_hash);
         return largeArTransfers;
     } else {
         const blocksMissed = lastFullBlock - lastIndexedBlock;
@@ -109,7 +108,7 @@ export default async function listenForTransactions() {
             largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
         }
 
-        await updateHeroku('currentBlock', currentBlock.current);
+        await updateHeroku('currentBlock', currentBlock.indep_hash);
         if (largeArTransfers.length === 0) {
             return false;
         } else {
