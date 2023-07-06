@@ -78,21 +78,25 @@ export default async function listenForTransactions() {
     const queryBlocks = await arweave.blocks.getCurrent();
     const currentBlock = queryBlocks.indep_hash
     const lastFullBlock = queryBlocks.previous_block;
+    const lastIndexedCurrentBlock = process.env.currentBlock
     const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
 
     if (lastFullBlock === lastIndexedBlock) {
-        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
-    
-    } else if (lastFullBlock === process.env.currentBlock) {
-        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
 
+        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+    
+    } else if (lastFullBlock === lastIndexedCurrentBlock) {
+
+        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
         let largeArTransfers = await queryBlock(lastFullBlock, true);
         await updateHeroku('currentBlock', currentBlock);
         return largeArTransfers;
-    } else {
+
+    } else if (lastFullBlock !== lastIndexedCurrentBlock) {
+
         const blocksMissed = lastFullBlock - lastIndexedBlock;
-        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
+        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
 
         let largeArTransfers = [];
 
