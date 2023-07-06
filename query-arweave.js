@@ -18,7 +18,7 @@ function winstonToDollars(winston) {
 }
 
 
-async function updateHeroku(key, value) {
+async function updateHerokuFn(key, value) {
     const heroku = new Heroku({ token: process.env.HEROKU_API_KEY });
     const appName = 'arweave-whale-alert';
     const configVars = { [key]: value };
@@ -60,11 +60,11 @@ async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
     await Promise.all(txnPromises);
 
     if (updateHeroku) {
-        const saveLastFullBlock = await updateHeroku('lastIndexedBlock', lastFullBlock);
+        const saveLastFullBlock = await updateHerokuFn('lastIndexedBlock', lastFullBlock);
         if (saveLastFullBlock === false) {
             throw newError('Failed to update lastIndexedBlock!');
         }
-        const saveLastIndexedCurrentBlock = await updateHeroku('lastIndexedCurrentBlock', currentBlock);
+        const saveLastIndexedCurrentBlock = await updateHerokuFn('lastIndexedCurrentBlock', currentBlock);
         if (saveLastIndexedCurrentBlock === false) {
             throw newError('Failed to update lastIndexedCurrentBlock!');
         }
