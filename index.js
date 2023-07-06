@@ -11,7 +11,7 @@ async function mainLoop() {
       await postToTwitter(whaleTransactions);
     }
 
-    await delay(30000);
+    await delay(20000);
   }
 }
 
