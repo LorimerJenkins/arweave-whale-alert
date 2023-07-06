@@ -36,8 +36,19 @@ async function sendSlackMessage(message) {
 }
 
 async function sendTweet(message) {
-    const twitterClient = new TwitterApi(process.env.TWITTER_TOKEN);
-    await twitterClient.v2.tweet(message);
+    const twitterClient = new TwitterApi({
+        appKey: process.env.TWITTER_API_KEY,
+        appSecret: process.env.TWITTER_API_SECRET,
+        accessToken: process.env.TWITTER_ACCESS_TOKEN,
+        accessSecret: process.env.TWITTER_ACCESS_SECRET,       
+    }, );
+    let res;
+    try {
+        res = await twitterClient.v2.tweet(message);
+    } catch (err) {
+        console.log(err);
+    }
+    console.log(res);
 }
 
 
@@ -47,8 +58,8 @@ export default async function postToTwitter(whaleTransactions) {
         const message = `🚨 ${winstonToArweave(transaction.quantity)} AR ($${winstonToDollars(transaction.quantity)} USD) transferred to ${shortenAddress(transaction.target)} 
         
         Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`;
-        await sendTweet(message);
         await sendSlackMessage(message);
+        await sendTweet(message);
         console.log(message)
     }
 
