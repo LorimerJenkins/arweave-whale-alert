@@ -1,7 +1,3 @@
-// // remove in prod
-// import dotenv from 'dotenv';
-// dotenv.config();
-
 import redstone from "redstone-api";
 import { TwitterApi } from 'twitter-api-v2';
 import axios from 'axios';

@@ -2,7 +2,6 @@ import Arweave from 'arweave';
 import redstone from 'redstone-api';
 import Heroku from 'heroku-client';
 
-
 const arweave = Arweave.init({
     host: 'arweave.net',
     port: 443,
@@ -53,7 +52,7 @@ async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
             }
         }
         } catch (e) {
-            console.log(e);
+            // ignore download errors as we are looking for $AR transfers
         }
     });
 
