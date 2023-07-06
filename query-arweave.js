@@ -76,18 +76,24 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 export default async function listenForTransactions() {
     const currentBlock = await arweave.blocks.getCurrent();
     const lastFullBlock = currentBlock.previous_block;
+    const lastIndexedBlock = process.env.PREVIOUS_BLOCK_ID
     const currentDate = new Date();
 
-    if (lastFullBlock === process.env.PREVIOUS_BLOCK_ID) {
+
+    console.log('lastFullBlock', typeof lastFullBlock)
+    console.log('lastIndexedBlock', typeof lastIndexedBlock)
+
+
+    if (lastFullBlock === lastIndexedBlock) {
         console.log('NO new block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
 
-    } else if (lastFullBlock === process.env.PREVIOUS_BLOCK_ID + 1) {
+    } else if (lastFullBlock === lastIndexedBlock + 1) {
         console.log('NEW block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
 
         let largeArTransfers = await queryBlock(lastFullBlock, true);
         return largeArTransfers;
     } else {
-        const blocksMissed = lastFullBlock - process.env.PREVIOUS_BLOCK_ID;
+        const blocksMissed = lastFullBlock - lastIndexedBlock;
         console.log('We have MISSED and not indexed', blocksMissed, 'blocks at', currentDate.toLocaleString());
 
         let largeArTransfers = [];
