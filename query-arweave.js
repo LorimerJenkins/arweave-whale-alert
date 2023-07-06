@@ -75,23 +75,24 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 
 
 export default async function listenForTransactions() {
-    const currentBlock = await arweave.blocks.getCurrent();
-    const lastFullBlock = currentBlock.previous_block;
+    const queryBlocks = await arweave.blocks.getCurrent();
+    const currentBlock = queryBlocks.indep_hash
+    const lastFullBlock = queryBlocks.previous_block;
     const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
 
     if (lastFullBlock === lastIndexedBlock) {
-        console.log('NO new block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
-
+        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
+    
     } else if (lastFullBlock === process.env.currentBlock) {
-        console.log('NEW block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
+        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
 
         let largeArTransfers = await queryBlock(lastFullBlock, true);
-        await updateHeroku('currentBlock', currentBlock.indep_hash);
+        await updateHeroku('currentBlock', currentBlock);
         return largeArTransfers;
     } else {
         const blocksMissed = lastFullBlock - lastIndexedBlock;
-        console.log('We have MISSED and not indexed', blocksMissed, 'blocks at', currentDate.toLocaleString());
+        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(lastFullBlock)}. Current time: ${currentDate.toLocaleString()}`)
 
         let largeArTransfers = [];
 
@@ -108,7 +109,7 @@ export default async function listenForTransactions() {
             largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
         }
 
-        await updateHeroku('currentBlock', currentBlock.indep_hash);
+        await updateHeroku('currentBlock', currentBlock);
         if (largeArTransfers.length === 0) {
             return false;
         } else {
