@@ -18,11 +18,10 @@ function winstonToDollars(winston) {
 }
 
 
-async function updateHeroku(previousBlockNumber) {
+async function updateHeroku(key, value) {
     const heroku = new Heroku({ token: process.env.HEROKU_API_KEY });
     const appName = 'arweave-whale-alert';
-    const key = 'PREVIOUS_BLOCK_ID';
-    const configVars = { [key]: previousBlockNumber };
+    const configVars = { [key]: value };
     try {
         await heroku.patch(`/apps/${appName}/config-vars`, { body: configVars });
         return true;
@@ -61,7 +60,7 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
     await Promise.all(txnPromises);
 
     if (saveBlockToHeroku) {
-        const saveBlock = await updateHeroku(lastFullBlock);
+        const saveBlock = await updateHeroku('lastIndexedBlock', lastFullBlock);
         if (saveBlock === false) {
             throw newError('Failed to update previous block!');
         }
@@ -77,22 +76,19 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 
 export default async function listenForTransactions() {
     const currentBlock = await arweave.blocks.getCurrent();
+    console.log(currentBlock)
     const lastFullBlock = currentBlock.previous_block;
-    const lastIndexedBlock = process.env.PREVIOUS_BLOCK_ID
+    const lastIndexedBlock = process.env.lastIndexedBlock
     const currentDate = new Date();
-
-
-    console.log('lastFullBlock', typeof lastFullBlock, typeof parseInt(lastFullBlock), lastFullBlock)
-    console.log('lastIndexedBlock', typeof lastIndexedBlock, parseInt(lastIndexedBlock), lastIndexedBlock)
-
 
     if (lastFullBlock === lastIndexedBlock) {
         console.log('NO new block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
 
-    } else if (lastFullBlock === lastIndexedBlock + 1) {
+    } else if (lastFullBlock === process.env.currentBlock) {
         console.log('NEW block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
 
         let largeArTransfers = await queryBlock(lastFullBlock, true);
+        await updateHeroku('currentBlock', currentBlock.current);
         return largeArTransfers;
     } else {
         const blocksMissed = lastFullBlock - lastIndexedBlock;
@@ -113,11 +109,14 @@ export default async function listenForTransactions() {
             largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
         }
 
+        await updateHeroku('currentBlock', currentBlock.current);
         if (largeArTransfers.length === 0) {
             return false;
         } else {
             return largeArTransfers;
         }
     }
+
+
 }
 
