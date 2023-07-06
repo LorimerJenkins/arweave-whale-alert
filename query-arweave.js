@@ -1,6 +1,8 @@
 import Arweave from 'arweave';
 import redstone from 'redstone-api';
 import Heroku from 'heroku-client';
+import queryTransactionIDsBetweenBlocks from './arweaveGQL';
+
 
 const arweave = Arweave.init({
     host: 'arweave.net',
@@ -37,7 +39,7 @@ function shortenAddress(address) {
 }
 
 
-async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
+async function queryBlock(lastFullBlock, currentBlock) {
     const previousBlocksTxns = (await arweave.blocks.get(lastFullBlock)).txs;
     const largeArTransferDollars = parseInt(process.env.LARGE_AR_TRANSFERS_DOLLARS);
     let largeArTransfers = [];
@@ -58,16 +60,16 @@ async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
 
     await Promise.all(txnPromises);
 
-    if (updateHeroku) {
-        const saveLastFullBlock = await updateHerokuFn('lastIndexedBlock', lastFullBlock);
-        if (saveLastFullBlock === false) {
-            throw newError('Failed to update lastIndexedBlock!');
-        }
-        const savelastCurrentBlock = await updateHerokuFn('lastCurrentBlock', currentBlock);
-        if (savelastCurrentBlock === false) {
-            throw newError('Failed to update lastCurrentBlock!');
-        }
+
+    const saveLastFullBlock = await updateHerokuFn('lastIndexedBlock', lastFullBlock);
+    if (saveLastFullBlock === false) {
+        throw newError('Failed to update lastIndexedBlock!');
     }
+    const savelastCurrentBlock = await updateHerokuFn('lastCurrentBlock', currentBlock);
+    if (savelastCurrentBlock === false) {
+        throw newError('Failed to update lastCurrentBlock!');
+    }
+    
 
     if (largeArTransfers.length === 0) {
         return false;
@@ -75,6 +77,40 @@ async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
         return largeArTransfers;
     }
 }
+
+
+
+
+async function queryTransactions(missedTransactions) {
+    let largeArTransfers = [];
+
+    const txnPromises = missedTransactions.map(async (txn) => {
+        console.log(txn)
+        try {
+            const transaction = await arweave.transactions.get(txn);
+            console.log(transaction)
+        if (transaction.quantity) {
+                const dollarWorth = winstonToDollars(transaction.quantity);
+                if (dollarWorth >= largeArTransferDollars) {
+                largeArTransfers.push(transaction);
+            }
+        }
+        } catch (e) {
+            // ignore download errors as we are looking for $AR transfers
+        }
+    });
+
+    await Promise.all(txnPromises);
+
+
+    if (largeArTransfers.length === 0) {
+        return false;
+    } else {
+        return largeArTransfers;
+    }
+}
+
+
 
 
 export default async function listenForTransactions() {
@@ -92,42 +128,33 @@ export default async function listenForTransactions() {
     } else if (currentFullBlock === lastCurrentBlock) {
 
         console.log(`NEW block. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
-        let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
+        let largeArTransfers = await queryBlock(currentFullBlock, currentBlock);
         return largeArTransfers;
 
     } else if (currentFullBlock !== lastCurrentBlock) {
 
-        // const blocksMissed = currentFullBlock - lastIndexedBlock;
-        console.log(`We have MISSED and not indexed ${'blocksMissed'} blocks. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        console.log(`We have MISSED blocks. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
 
-        // let largeArTransfers = [];
+        const missedTransactions = await queryTransactionIDsBetweenBlocks(lastCurrentBlock, currentFullBlock)
 
-        // for (let i = 0; i < blocksMissed; i++) {
-        //     const index = i + 1;
-        //     const queryMissedBlocks = await queryBlock(currentFullBlock - index, currentBlock, false);
-        //     if (queryMissedBlocks.length !== 0) {
-        //         largeArTransfers = largeArTransfers.concat(queryMissedBlocks);
-        //     }
-        // }
-
-        // const queryCurrentFullBlock = await queryBlock(currentFullBlock, currentBlock, true);
-        // if (queryCurrentFullBlock.length !== 0) {
-        //     largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
-        // }
-
-        // if (largeArTransfers.length === 0) {
-        //     return false;
-        // } else {
-        //     return largeArTransfers;
-        // }
+        let largeArTransfers = await queryTransactions(missedTransactions)
 
 
-        let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
-        return largeArTransfers;
+        const saveLastFullBlock = await updateHerokuFn('lastIndexedBlock', currentFullBlock);
+        if (saveLastFullBlock === false) {
+            throw newError('Failed to update lastIndexedBlock!');
+        }
+        const savelastCurrentBlock = await updateHerokuFn('lastCurrentBlock', currentBlock);
+        if (savelastCurrentBlock === false) {
+            throw newError('Failed to update lastCurrentBlock!');
+        }
 
+        //
+
+
+        return largeArTransfers
 
     }
-
 
 }
 
