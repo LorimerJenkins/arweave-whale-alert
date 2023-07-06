@@ -85,10 +85,8 @@ async function queryTransactions(missedTransactions) {
     let largeArTransfers = [];
 
     const txnPromises = missedTransactions.map(async (txn) => {
-        console.log(txn)
         try {
             const transaction = await arweave.transactions.get(txn);
-            console.log(transaction)
         if (transaction.quantity) {
                 const dollarWorth = winstonToDollars(transaction.quantity);
                 if (dollarWorth >= largeArTransferDollars) {
