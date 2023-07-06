@@ -98,29 +98,35 @@ export default async function listenForTransactions() {
 
     } else if (currentFullBlock !== lastIndexedCurrentBlock) {
 
-        const blocksMissed = currentFullBlock - lastIndexedBlock;
-        console.log(`We have MISSED and not indexed ${blocksMissed} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        // const blocksMissed = currentFullBlock - lastIndexedBlock;
+        console.log(`We have MISSED and not indexed ${'blocksMissed'} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
 
-        let largeArTransfers = [];
+        // let largeArTransfers = [];
 
-        for (let i = 0; i < blocksMissed; i++) {
-            const index = i + 1;
-            const queryMissedBlocks = await queryBlock(currentFullBlock - index, currentBlock, false);
-            if (queryMissedBlocks.length !== 0) {
-                largeArTransfers = largeArTransfers.concat(queryMissedBlocks);
-            }
-        }
+        // for (let i = 0; i < blocksMissed; i++) {
+        //     const index = i + 1;
+        //     const queryMissedBlocks = await queryBlock(currentFullBlock - index, currentBlock, false);
+        //     if (queryMissedBlocks.length !== 0) {
+        //         largeArTransfers = largeArTransfers.concat(queryMissedBlocks);
+        //     }
+        // }
 
-        const queryCurrentFullBlock = await queryBlock(currentFullBlock, currentBlock, true);
-        if (queryCurrentFullBlock.length !== 0) {
-            largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
-        }
+        // const queryCurrentFullBlock = await queryBlock(currentFullBlock, currentBlock, true);
+        // if (queryCurrentFullBlock.length !== 0) {
+        //     largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
+        // }
 
-        if (largeArTransfers.length === 0) {
-            return false;
-        } else {
-            return largeArTransfers;
-        }
+        // if (largeArTransfers.length === 0) {
+        //     return false;
+        // } else {
+        //     return largeArTransfers;
+        // }
+
+
+        let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
+        return largeArTransfers;
+
+
     }
 
 
