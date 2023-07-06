@@ -32,14 +32,16 @@ async function updateHeroku(previousBlockNumber) {
     }
 }
 
+
 function shortenAddress(address) {
     const shortenedAddress = address.slice(0, 7) + '...' + address.slice(-7);
     return shortenedAddress;
 }
 
+
 async function queryBlock(lastFullBlock, saveBlockToHeroku) {
     const previousBlocksTxns = (await arweave.blocks.get(lastFullBlock)).txs;
-    const largeArTransferDollars = process.env.LARGE_AR_TRANSFERS_DOLLARS;
+    const largeArTransferDollars = parseInt(process.env.LARGE_AR_TRANSFERS_DOLLARS);
     let largeArTransfers = [];
 
     const txnPromises = previousBlocksTxns.map(async (txn) => {
