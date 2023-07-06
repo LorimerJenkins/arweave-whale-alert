@@ -88,18 +88,18 @@ export default async function listenForTransactions() {
 
     if (currentFullBlock === lastIndexedBlock) {
 
-        console.log(`NO new block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        console.log(`NO new block. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
     
     } else if (currentFullBlock === lastIndexedCurrentBlock) {
 
-        console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        console.log(`NEW block. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
         let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
         return largeArTransfers;
 
     } else if (currentFullBlock !== lastIndexedCurrentBlock) {
 
         // const blocksMissed = currentFullBlock - lastIndexedBlock;
-        console.log(`We have MISSED and not indexed ${'blocksMissed'} blocks. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
+        console.log(`We have MISSED and not indexed ${'blocksMissed'} blocks. currentBlock: ${shortenAddress(currentBlock)}. currentFullBlock: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
 
         // let largeArTransfers = [];
 
