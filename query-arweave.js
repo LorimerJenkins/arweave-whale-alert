@@ -75,13 +75,13 @@ async function queryBlock(lastFullBlock, saveBlockToHeroku) {
 
 export default async function listenForTransactions() {
     const currentBlock = await arweave.blocks.getCurrent();
-    const lastFullBlock = currentBlock.previous_block;
-    const lastIndexedBlock = process.env.PREVIOUS_BLOCK_ID
+    const lastFullBlock = parseInt(currentBlock.previous_block);
+    const lastIndexedBlock = parseInt(process.env.PREVIOUS_BLOCK_ID)
     const currentDate = new Date();
 
 
-    console.log('lastFullBlock', typeof lastFullBlock)
-    console.log('lastIndexedBlock', typeof lastIndexedBlock)
+    console.log('lastFullBlock', typeof lastFullBlock, lastFullBlock)
+    console.log('lastIndexedBlock', typeof lastIndexedBlock, lastIndexedBlock)
 
 
     if (lastFullBlock === lastIndexedBlock) {
