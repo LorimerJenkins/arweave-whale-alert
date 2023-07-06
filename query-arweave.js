@@ -85,7 +85,6 @@ export default async function listenForTransactions() {
 
     } else if (lastFullBlock === process.env.currentBlock) {
         console.log('NEW block', shortenAddress(lastFullBlock), currentDate.toLocaleString());
-        await updateHeroku('currentBlock', currentBlock.indep_hash);
 
         let largeArTransfers = await queryBlock(lastFullBlock, true);
         await updateHeroku('currentBlock', currentBlock.indep_hash);
