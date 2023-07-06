@@ -38,7 +38,7 @@ function shortenAddress(address) {
 }
 
 
-async function queryBlock(lastFullBlock, updateHeroku) {
+async function queryBlock(lastFullBlock, currentBlock, updateHeroku) {
     const previousBlocksTxns = (await arweave.blocks.get(lastFullBlock)).txs;
     const largeArTransferDollars = parseInt(process.env.LARGE_AR_TRANSFERS_DOLLARS);
     let largeArTransfers = [];
@@ -93,7 +93,7 @@ export default async function listenForTransactions() {
     } else if (currentFullBlock === lastIndexedCurrentBlock) {
 
         console.log(`NEW block. Current block: ${shortenAddress(currentBlock)}. Last block: ${shortenAddress(currentFullBlock)}. Current time: ${currentDate.toLocaleString()}.`)
-        let largeArTransfers = await queryBlock(currentFullBlock, true);
+        let largeArTransfers = await queryBlock(currentFullBlock, currentBlock, true);
         return largeArTransfers;
 
     } else if (currentFullBlock !== lastIndexedCurrentBlock) {
@@ -111,7 +111,7 @@ export default async function listenForTransactions() {
             }
         }
 
-        const queryCurrentFullBlock = await queryBlock(currentFullBlock, true);
+        const queryCurrentFullBlock = await queryBlock(currentFullBlock, currentBlock, true);
         if (queryCurrentFullBlock.length !== 0) {
             largeArTransfers = largeArTransfers.concat(queryCurrentFullBlock);
         }
