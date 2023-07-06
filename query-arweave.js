@@ -58,7 +58,7 @@ export default async function listenForTransactions() {
 
         const previousBlocksTxns = (await arweave.blocks.get(previous_block)).txs;
 
-        const largeArTransferDollars = 25000;
+        const largeArTransferDollars = 10000;
         const largeArTransfers = [];
 
         const txnPromises = previousBlocksTxns.map(async (txn) => {
