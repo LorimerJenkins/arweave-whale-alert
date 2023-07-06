@@ -60,11 +60,13 @@ export default async function postToTwitter(whaleTransactions) {
         Transaction ID: https://viewblock.io/arweave/tx/${transaction.id}`;
         try {
             await sendSlackMessage(message);
+            console.log("POSTED TO SLACK");
         } catch (err) {
             console.log(err);
         }
         try {
             await sendTweet(message);
+            console.log("POSTED TO TWITTER");
         } catch (err) {
             console.log(err);
         }
