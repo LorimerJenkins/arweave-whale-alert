@@ -105,7 +105,7 @@ export default async function listenForTransactions() {
 
         for (let i = 0; i < blocksMissed; i++) {
             const index = i + 1;
-            const queryMissedBlocks = await queryBlock(currentFullBlock - index, false);
+            const queryMissedBlocks = await queryBlock(currentFullBlock - index, currentBlock, false);
             if (queryMissedBlocks.length !== 0) {
                 largeArTransfers = largeArTransfers.concat(queryMissedBlocks);
             }
